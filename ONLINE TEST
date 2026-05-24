@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Online Test – Ujjwal Teaching Classes</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Tiro+Devanagari+Hindi&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#0d1b6b;--blue:#1a237e;--mid:#283593;--purple:#6a1b9a;
+  --green:#2e7d32;--green-l:#e8f5e9;--red:#c62828;--red-l:#ffebee;
+  --orange:#e65100;--orange-l:#fff3e0;--gold:#f9a825;
+  --bg:#eef0f8;--white:#ffffff;
+  --card-shadow:0 4px 24px rgba(13,27,107,.13);
+  --radius:14px;--font:'Noto Sans Devanagari',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);min-height:100vh;color:#222;font-size:15px}
+button{font-family:var(--font);cursor:pointer;transition:all .2s}
+input{font-family:var(--font)}
+#app{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative}
+.screen{display:none}
+.screen.active{display:block}
+
+.main-header{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 55%,var(--purple) 100%);
+  padding:22px 20px 18px;text-align:center;position:relative;overflow:hidden;
+}
+.main-header::before{content:'';position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.06)}
+.main-header::after{content:'';position:absolute;bottom:-30px;left:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.05)}
+.header-logo{font-size:34px;margin-bottom:4px;animation:float 3s ease-in-out infinite}
+.header-coach{font-size:21px;font-weight:900;color:#fff;letter-spacing:.3px;text-shadow:0 2px 8px rgba(0,0,0,.3);position:relative;z-index:1}
+.header-teacher{font-size:13px;color:rgba(255,255,255,.78);margin-top:3px;font-weight:500;position:relative;z-index:1}
+.header-meta{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;position:relative;z-index:1}
+.meta-chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:#fff;backdrop-filter:blur(4px)}
+
+.compact-header{background:var(--navy);padding:10px 16px;display:flex;align-items:center;gap:10px}
+.compact-coach{font-size:14px;font-weight:800;color:#fff}
+.compact-sub{font-size:11px;color:rgba(255,255,255,.7);margin-top:1px}
+
+.form-card{margin:16px;background:var(--white);border-radius:var(--radius);padding:22px;box-shadow:var(--card-shadow);animation:slideUp .4s ease}
+.card-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.card-sub{font-size:13px;color:#888;margin-bottom:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:700;color:#444;margin-bottom:7px}
+.field input{width:100%;padding:12px 14px;border:2px solid #e0e4f0;border-radius:10px;font-size:14px;outline:none;background:#f8f9ff;transition:border .25s,box-shadow .25s;color:#222}
+.field input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 4px rgba(26,35,126,.1)}
+.field input.error{border-color:var(--red)}
+.field .err-msg{font-size:12px;color:var(--red);margin-top:5px;display:none}
+.field .err-msg.show{display:block}
+.dup-alert{background:var(--red-l);border:1.5px solid #ef9a9a;border-radius:10px;padding:12px 14px;font-size:13px;color:var(--red);margin-bottom:4px;display:none;animation:shake .4s}
+.dup-alert.show{display:block}
+.btn-start{width:100%;padding:14px;margin-top:8px;background:linear-gradient(135deg,var(--navy),var(--purple));color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;letter-spacing:.3px;box-shadow:0 4px 16px rgba(13,27,107,.3)}
+.btn-start:hover{opacity:.9;transform:translateY(-2px)}
+.btn-start:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.info-box{margin:0 16px 22px;background:var(--white);border-radius:12px;padding:14px 16px;box-shadow:0 2px 10px rgba(0,0,0,.06);border-left:4px solid var(--gold)}
+.info-box h4{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:8px}
+.info-box ul{padding-left:18px;font-size:12.5px;color:#555;line-height:2}
+
+/* Loading overlay */
+.loading-overlay{
+  display:none;position:fixed;inset:0;background:rgba(13,27,107,.7);
+  z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:14px;
+}
+.loading-overlay.show{display:flex}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite}
+.loading-text{color:#fff;font-size:15px;font-weight:700}
+
+.quiz-topbar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-bottom:1px solid #e8eaf6;position:sticky;top:0;z-index:100}
+.quiz-chips{display:flex;gap:6px;flex-wrap:wrap}
+.q-chip{background:#e8eaf6;color:var(--mid);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700}
+#timer{background:var(--blue);color:#fff;border-radius:8px;padding:6px 13px;font-weight:900;font-size:16px;font-family:'Courier New',monospace;min-width:76px;text-align:center;transition:background .4s;box-shadow:0 2px 8px rgba(26,35,126,.3)}
+#timer.warn{background:var(--orange)}
+#timer.danger{background:var(--red);animation:blink 1s infinite}
+.progress-wrap{height:5px;background:#dde0f0}
+.progress-bar{height:5px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s ease;width:0%}
+
+.q-card{margin:12px;background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--card-shadow);animation:fadeQ .3s ease}
+.q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.q-num{font-size:12px;font-weight:700;color:#9e9e9e;letter-spacing:.5px}
+.q-status-done{background:var(--green-l);color:var(--green);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800}
+.q-status-skip{background:var(--red-l);color:var(--red);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800}
+.q-text{font-size:16px;font-weight:700;color:var(--navy);line-height:1.7;margin-bottom:18px}
+.options{display:flex;flex-direction:column;gap:10px}
+.opt-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;border:2px solid #e8eaf6;border-radius:12px;background:#fafafa;font-size:14px;color:#333;text-align:left;transition:all .2s}
+.opt-btn:hover{border-color:#9fa8da;background:#f0f2ff}
+.opt-btn.selected{border-color:var(--blue);background:#e8eaf6;color:var(--blue);font-weight:700}
+.opt-circle{width:28px;height:28px;border-radius:50%;background:#e8eaf6;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--mid);flex-shrink:0;transition:all .2s}
+.opt-btn.selected .opt-circle{background:var(--blue);color:#fff}
+.nav-row{display:flex;gap:10px;margin-top:18px}
+.btn-prev{flex:1;padding:12px;border:2px solid #c5cae9;border-radius:10px;background:#fff;color:var(--mid);font-size:14px;font-weight:700}
+.btn-prev:hover:not(:disabled){background:#e8eaf6}
+.btn-prev:disabled{opacity:.4;cursor:not-allowed}
+.btn-next{flex:1;padding:12px;border:none;border-radius:10px;background:var(--blue);color:#fff;font-size:14px;font-weight:700}
+.btn-next:hover{background:var(--navy)}
+
+.tracker{margin:0 12px 8px;background:#fff;border-radius:var(--radius);padding:14px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
+.tracker-head{display:flex;justify-content:space-between;margin-bottom:10px}
+.badge-green{background:var(--green-l);color:var(--green);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800}
+.badge-red{background:var(--red-l);color:var(--red);border-radius:20px;padding:4px 12px;font-size:13px;font-weight:800}
+.bubble-grid{display:flex;flex-wrap:wrap;gap:6px}
+.q-bubble{width:33px;height:33px;border-radius:8px;border:none;font-size:11px;font-weight:800;color:#fff;cursor:pointer;transition:transform .15s;font-family:var(--font)}
+.q-bubble:hover{transform:scale(1.18)}
+.q-bubble.done{background:var(--green)}
+.q-bubble.skip{background:var(--red)}
+.q-bubble.current{background:var(--navy);outline:3px solid #90caf9}
+.btn-submit-all{width:100%;padding:14px;margin:4px 0 8px;background:linear-gradient(135deg,var(--green),#1b5e20);color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(46,125,50,.35)}
+.btn-submit-all:hover{opacity:.9;transform:translateY(-1px)}
+.submit-wrap{padding:10px 12px 26px}
+
+.pre-card{margin:16px;background:#fff;border-radius:var(--radius);padding:24px 20px;box-shadow:var(--card-shadow);text-align:center;animation:slideUp .4s ease}
+.pre-icon{font-size:44px;margin-bottom:8px}
+.pre-title{font-size:19px;font-weight:800;color:var(--blue);margin-bottom:4px}
+.pre-sub{font-size:13px;color:#888;margin-bottom:18px}
+.student-card{background:#f3f4ff;border-radius:12px;padding:14px 16px;margin-bottom:16px;border-left:4px solid var(--blue);text-align:left}
+.s-name{font-size:17px;font-weight:800;color:var(--navy)}
+.s-detail{font-size:13px;color:#666;margin-top:3px}
+.stats-row{display:flex;gap:10px;margin-bottom:16px}
+.stat-box{flex:1;border:2px solid;border-radius:12px;padding:12px 6px;text-align:center}
+.stat-num{font-size:26px;font-weight:900}
+.stat-label{font-size:11px;color:#666;margin-top:2px}
+.skip-warn{background:var(--orange-l);border:1.5px solid #ffb300;border-radius:10px;padding:11px 14px;font-size:13px;color:var(--orange);margin-bottom:14px;display:none}
+.skip-warn.show{display:block}
+.pre-actions{display:flex;gap:10px}
+.btn-back{flex:1;padding:13px;border:2px solid #c5cae9;border-radius:12px;background:#fff;color:var(--mid);font-size:14px;font-weight:700}
+.btn-back:hover{background:#e8eaf6}
+.btn-final{flex:2;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,var(--green),var(--blue));color:#fff;font-size:15px;font-weight:800;box-shadow:0 4px 14px rgba(46,125,50,.3)}
+.btn-final:hover{opacity:.9;transform:translateY(-1px)}
+.btn-final:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+#screen-success{display:none;min-height:100vh;background:linear-gradient(160deg,#f0f2ff,#e8f5e9)}
+#screen-success.active{display:block}
+.success-wrap{padding:40px 20px 30px;text-align:center;animation:popIn .5s ease}
+.success-emoji{font-size:70px;display:block;animation:bounce 1s .2s both}
+.success-title{font-size:22px;font-weight:900;color:var(--green);margin:12px 0 4px}
+.success-sub{font-size:14px;color:#666;margin-bottom:22px}
+.success-student{background:#fff;border-radius:var(--radius);padding:16px 20px;margin-bottom:16px;box-shadow:var(--card-shadow);text-align:left;border-top:4px solid var(--green)}
+.ss-name{font-size:20px;font-weight:900;color:var(--navy)}
+.ss-detail{font-size:13px;color:#666;margin-top:3px}
+.success-stats{display:flex;gap:12px;margin-bottom:16px}
+.success-stat{flex:1;background:#fff;border-radius:12px;padding:16px 8px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.ss-num{font-size:30px;font-weight:900}
+.ss-lbl{font-size:11px;color:#777;margin-top:2px}
+.success-note{background:#e8f5e9;border-radius:10px;padding:12px 16px;font-size:13px;color:var(--green);font-weight:700;margin-bottom:20px}
+.btn-home{width:100%;padding:14px;background:linear-gradient(135deg,var(--navy),var(--purple));color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;box-shadow:0 4px 16px rgba(13,27,107,.25)}
+.btn-home:hover{opacity:.9;transform:translateY(-1px)}
+
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeQ{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-18px)}60%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#eef0f8}
+::-webkit-scrollbar-thumb{background:#c5cae9;border-radius:10px}
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Please wait...</div>
+</div>
+
+<div id="app">
+
+<!-- SCREEN 1: FORM -->
+<div id="screen-form" class="screen active">
+  <div class="main-header">
+    <div class="header-logo">🎓</div>
+    <div class="header-coach">Ujjwal Teaching Classes</div>
+    <div class="header-teacher">Director: Ujjwal Sir</div>
+    <div class="header-meta">
+      <span class="meta-chip">Class: 10th</span>
+      <span class="meta-chip">Subject: Hindi</span>
+      <span class="meta-chip">Max Marks: 50</span>
+    </div>
+  </div>
+  <div class="form-card">
+    <div class="card-title"><span>📋</span> Exam Registration</div>
+    <p class="card-sub">Please fill in the details correctly before starting the exam</p>
+    <div class="field">
+      <label for="inp-name">Student's Name *</label>
+      <input type="text" id="inp-name" placeholder="Enter your full name"/>
+      <div class="err-msg" id="err-name">Please enter your name</div>
+    </div>
+    <div class="field">
+      <label for="inp-father">Father's Name *</label>
+      <input type="text" id="inp-father" placeholder="Enter father's full name"/>
+      <div class="err-msg" id="err-father">Please enter father's name</div>
+    </div>
+    <div class="field">
+      <label for="inp-mobile">Mobile Number *</label>
+      <input type="tel" id="inp-mobile" placeholder="10-digit mobile number" maxlength="10"/>
+      <div class="err-msg" id="err-mobile">Please enter a valid 10-digit mobile number</div>
+    </div>
+    <div class="dup-alert" id="dup-alert">
+      <strong>⚠️ This mobile number is already in use!</strong><br/>
+      An exam has already been taken with this number. Please try another mobile number.
+    </div>
+    <button class="btn-start" id="btn-start" onclick="startExam()">Start Exam &rarr;</button>
+  </div>
+  <div class="info-box">
+    <h4>📌 Important Instructions</h4>
+    <ul>
+      <li>There are a total of <strong>20 questions</strong> in the exam</li>
+      <li>Each question has <strong>4 options</strong></li>
+      <li>The exam will be <strong>auto-submitted</strong> when the time is up</li>
+      <li>You can take the exam <strong>only once</strong> per mobile number</li>
+      <li>Use Next/Previous buttons to navigate questions</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SCREEN 2: QUIZ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-topbar">
+    <div class="quiz-chips">
+      <span class="q-chip">🎓 Ujjwal Classes</span>
+      <span class="q-chip">📖 Hindi</span>
+      <span class="q-chip" id="attempt-chip">✏️ 0/20</span>
+    </div>
+    <div id="timer">30:00</div>
+  </div>
+  <div class="progress-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+  <div class="q-card" id="q-card">
+    <div class="q-meta">
+      <span class="q-num" id="q-num">Question 1 / 20</span>
+      <span class="q-status-skip" id="q-status">○ Unanswered</span>
+    </div>
+    <div class="q-text" id="q-text">Loading question...</div>
+    <div class="options" id="options"></div>
+    <div class="nav-row">
+      <button class="btn-prev" id="btn-prev" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="btn-next" id="btn-next" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+  </div>
+  <div class="tracker">
+    <div class="tracker-head">
+      <span class="badge-green" id="badge-attempted">✅ Attempted: 0</span>
+      <span class="badge-red" id="badge-skipped">⭕ Skipped: 20</span>
+    </div>
+    <div class="bubble-grid" id="bubble-grid"></div>
+  </div>
+  <div class="submit-wrap">
+    <button class="btn-submit-all" onclick="goToPreSubmit()">📤 Submit Exam</button>
+  </div>
+</div>
+
+<!-- SCREEN 3: PRE-SUBMIT -->
+<div id="screen-presubmit" class="screen">
+  <div class="compact-header">
+    <div>
+      <div class="compact-coach">🎓 Ujjwal Teaching Classes</div>
+      <div class="compact-sub">Class 10th • Hindi</div>
+    </div>
+  </div>
+  <div class="pre-card">
+    <div class="pre-icon">📊</div>
+    <div class="pre-title">Exam Summary</div>
+    <div class="pre-sub">Verify your details before submitting</div>
+    <div class="student-card">
+      <div class="s-name" id="pre-name">—</div>
+      <div class="s-detail" id="pre-father">Father: —</div>
+      <div class="s-detail" id="pre-mobile">📱 —</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-box" style="border-color:var(--blue)">
+        <div class="stat-num" style="color:var(--blue)">20</div>
+        <div class="stat-label">Total Questions</div>
+      </div>
+      <div class="stat-box" style="border-color:var(--green)">
+        <div class="stat-num" style="color:var(--green)" id="pre-attempted">0</div>
+        <div class="stat-label">Attempted</div>
+      </div>
+      <div class="stat-box" style="border-color:var(--red)">
+        <div class="stat-num" style="color:var(--red)" id="pre-skipped">20</div>
+        <div class="stat-label">Skipped</div>
+      </div>
+    </div>
+    <div class="skip-warn" id="skip-warn">
+      ⚠️ You have skipped <span id="skip-count"></span> questions. Do you want to go back?
+    </div>
+    <div class="pre-actions">
+      <button class="btn-back" onclick="goBackToQuiz()">&#8592; Go Back</button>
+      <button class="btn-final" id="btn-final" onclick="finalSubmit()">✅ Final Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: SUCCESS -->
+<div id="screen-success" class="screen">
+  <div class="success-wrap">
+    <span class="success-emoji">🎉</span>
+    <div class="success-title">Exam Submitted Successfully!</div>
+    <div class="success-sub">Your exam has been submitted successfully</div>
+    <div class="success-student">
+      <div class="ss-name" id="suc-name">—</div>
+      <div class="ss-detail" id="suc-father">Father: —</div>
+      <div class="ss-detail" id="suc-mobile">📱 —</div>
+    </div>
+    <div class="success-stats">
+      <div class="success-stat">
+        <div class="ss-num" style="color:var(--blue)" id="suc-total">20</div>
+        <div class="ss-lbl">Total Questions</div>
+      </div>
+      <div class="success-stat">
+        <div class="ss-num" style="color:var(--green)" id="suc-attempted">0</div>
+        <div class="ss-lbl">Attempted</div>
+      </div>
+      <div class="success-stat">
+        <div class="ss-num" style="color:var(--red)" id="suc-skipped">20</div>
+        <div class="ss-lbl">Skipped</div>
+      </div>
+    </div>
+    <div class="success-note">
+      📌 Your result will be announced soon by Ujjwal Teaching Classes.
+    </div>
+    <button class="btn-home" onclick="goHome()">🏠 Back to Home</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, child, push, onValue }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/* ── FIREBASE CONFIG ── */
+const firebaseConfig = {
+  apiKey: "AIzaSyCzEaZiXcsoKPa6HVrBUyrPeMR5RFEJk8E",
+  authDomain: "whatsapp-lite-49a23.firebaseapp.com",
+  databaseURL: "https://whatsapp-lite-49a23-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "whatsapp-lite-49a23",
+  storageBucket: "whatsapp-lite-49a23.firebasestorage.app",
+  messagingSenderId: "469686586554",
+  appId: "1:469686586554:web:233c2c2ce692be0f578683",
+  measurementId: "G-Y2YGCV46ZM"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+/* ── QUESTIONS ── */
+const QUESTIONS = [
+  { q:"'रामचरितमानस' के रचयिता कौन हैं?", opts:["सूरदास","तुलसीदास","कबीरदास","मीराबाई"], ans:1 },
+  { q:"हिंदी वर्णमाला में कुल कितने वर्ण होते हैं?", opts:["48","52","44","56"], ans:1 },
+  { q:"'गोदान' उपन्यास के लेखक कौन हैं?", opts:["जयशंकर प्रसाद","प्रेमचंद","हजारी प्रसाद द्विवेदी","रामधारी सिंह दिनकर"], ans:1 },
+  { q:"हिंदी के प्रथम कवि किसे माना जाता है?", opts:["कबीरदास","तुलसीदास","सरहपाद","मैथिलीशरण गुप्त"], ans:2 },
+  { q:"'साकेत' महाकाव्य के रचयिता कौन हैं?", opts:["सूर्यकांत त्रिपाठी 'निराला'","मैथिलीशरण गुप्त","सुमित्रानंदन पंत","महादेवी वर्मा"], ans:1 },
+  { q:"निम्न में से कौन सा शब्द तत्सम है?", opts:["आग","अग्नि","आंच","धुआं"], ans:1 },
+  { q:"'कामायनी' के रचयिता कौन हैं?", opts:["निराला","जयशंकर प्रसाद","पंत","महादेवी"], ans:1 },
+  { q:"हिंदी दिवस कब मनाया जाता है?", opts:["14 सितंबर","14 नवंबर","14 जनवरी","14 मार्च"], ans:0 },
+  { q:"'दोहा' में कितनी पंक्तियाँ होती हैं?", opts:["4","6","2","8"], ans:2 },
+  { q:"उपसर्ग 'अति' का सही उदाहरण कौन सा है?", opts:["अत्यधिक","अनुभव","प्रतिकूल","सुकर्म"], ans:0 },
+  { q:"'निराला' का पूरा नाम क्या था?", opts:["रामनरेश त्रिपाठी","सूर्यकांत त्रिपाठी","माखनलाल चतुर्वेदी","बालकृष्ण शर्मा"], ans:1 },
+  { q:"संधि के कितने भेद होते हैं?", opts:["दो","तीन","चार","पाँच"], ans:1 },
+  { q:"'मृगनयनी' उपन्यास के लेखक कौन हैं?", opts:["वृंदावनलाल वर्मा","अमृतलाल नागर","भगवतीचरण वर्मा","प्रेमचंद"], ans:0 },
+  { q:"हिंदी में लिंग के कितने भेद होते हैं?", opts:["दो","तीन","चार","एक"], ans:0 },
+  { q:"'वीरों का कैसा हो वसंत' — यह कविता किसकी है?", opts:["महादेवी वर्मा","सुभद्राकुमारी चौहान","मीराबाई","सुमित्रानंदन पंत"], ans:1 },
+  { q:"विशेषण के कितने भेद होते हैं?", opts:["3","4","5","6"], ans:1 },
+  { q:"'अंधेर नगरी' नाटक किसने लिखा?", opts:["भारतेंदु हरिश्चंद्र","जयशंकर प्रसाद","मोहन राकेश","लक्ष्मीनारायण मिश्र"], ans:0 },
+  { q:"क्रिया के कितने भेद होते हैं?", opts:["दो","तीन","चार","पाँच"], ans:0 },
+  { q:"'पदमावत' के रचयिता कौन हैं?", opts:["कुतुबन","मलिक मोहम्मद जायसी","मंझन","उसमान"], ans:1 },
+  { q:"हिंदी भाषा की लिपि कौन सी है?", opts:["ब्राह्मी","देवनागरी","रोमन","गुरुमुखी"], ans:1 },
+];
+
+/* ── STATE ── */
+let student = { name:"", father:"", mobile:"" };
+let answers  = {};
+let current  = 0;
+let timerSecs= 30*60;
+let timerInterval = null;
+
+/* ── LOADING ── */
+function showLoading(txt="Please wait..."){
+  document.getElementById('loading-text').textContent = txt;
+  document.getElementById('loading-overlay').classList.add('show');
+}
+function hideLoading(){
+  document.getElementById('loading-overlay').classList.remove('show');
+}
+
+/* ── SCREEN SWITCH ── */
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=> s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ── LOAD TIMER FROM FIREBASE ── */
+async function loadTimerFromDB(){
+  try{
+    const snap = await get(ref(db, 'settings/timerMins'));
+    return snap.exists() ? snap.val() : 30;
+  } catch(e){ return 30; }
+}
+
+/* ── CHECK DUPLICATE MOBILE IN FIREBASE ── */
+async function mobileExists(mobile){
+  try{
+    const snap = await get(ref(db, 'submissions'));
+    if(!snap.exists()) return false;
+    const data = snap.val();
+    return Object.values(data).some(s => s.mobile === mobile);
+  } catch(e){ return false; }
+}
+
+/* ── START EXAM ── */
+async function startExam(){
+  const name   = document.getElementById('inp-name').value.trim();
+  const father = document.getElementById('inp-father').value.trim();
+  const mobile = document.getElementById('inp-mobile').value.trim();
+  let valid = true;
+
+  ['name','father','mobile'].forEach(f=>{
+    document.getElementById('err-'+f).classList.remove('show');
+    document.getElementById('inp-'+f).classList.remove('error');
+  });
+  document.getElementById('dup-alert').classList.remove('show');
+
+  if(!name){ document.getElementById('err-name').classList.add('show'); document.getElementById('inp-name').classList.add('error'); valid=false; }
+  if(!father){ document.getElementById('err-father').classList.add('show'); document.getElementById('inp-father').classList.add('error'); valid=false; }
+  if(!/^\d{10}$/.test(mobile)){ document.getElementById('err-mobile').classList.add('show'); document.getElementById('inp-mobile').classList.add('error'); valid=false; }
+  if(!valid) return;
+
+  const btn = document.getElementById('btn-start');
+  btn.disabled = true;
+  showLoading('Checking...');
+
+  const dup = await mobileExists(mobile);
+  hideLoading();
+  btn.disabled = false;
+
+  if(dup){
+    document.getElementById('dup-alert').classList.add('show');
+    document.getElementById('inp-mobile').classList.add('error');
+    document.getElementById('inp-mobile').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+
+  student = { name, father, mobile };
+  answers  = {};
+  current  = 0;
+
+  showLoading('Starting exam...');
+  const mins = await loadTimerFromDB();
+  timerSecs  = mins * 60;
+  hideLoading();
+
+  buildBubbles();
+  renderQuestion();
+  startTimer();
+  showScreen('quiz');
+}
+
+/* ── TIMER ── */
+function startTimer(){
+  clearInterval(timerInterval);
+  updateTimerDisplay();
+  timerInterval = setInterval(()=>{
+    timerSecs--;
+    updateTimerDisplay();
+    if(timerSecs<=0){ clearInterval(timerInterval); goToPreSubmit(); }
+  },1000);
+}
+function updateTimerDisplay(){
+  const el = document.getElementById('timer');
+  const m  = String(Math.floor(timerSecs/60)).padStart(2,'0');
+  const s  = String(timerSecs%60).padStart(2,'0');
+  el.textContent = m+':'+s;
+  el.className = timerSecs<=60?'danger':timerSecs<=300?'warn':'';
+}
+
+/* ── RENDER QUESTION ── */
+function renderQuestion(){
+  const q    = QUESTIONS[current];
+  const sel  = answers[current];
+  const total= QUESTIONS.length;
+  const done = Object.keys(answers).length;
+  document.getElementById('q-num').textContent   = 'Question '+(current+1)+' / '+total;
+  document.getElementById('q-text').textContent  = q.q;
+  document.getElementById('attempt-chip').textContent = '✏️ '+done+'/'+total;
+  const statusEl = document.getElementById('q-status');
+  if(sel!==undefined){ statusEl.className='q-status-done'; statusEl.textContent='✓ Answered'; }
+  else { statusEl.className='q-status-skip'; statusEl.textContent='○ Unanswered'; }
+  const optWrap = document.getElementById('options');
+  optWrap.innerHTML='';
+  const labels=['A','B','C','D'];
+  q.opts.forEach((opt,i)=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn'+(sel===i?' selected':'');
+    btn.innerHTML=`<span class="opt-circle">${sel===i?'✓':labels[i]}</span><span>${opt}</span>`;
+    btn.onclick=()=>selectAnswer(i);
+    optWrap.appendChild(btn);
+  });
+  document.getElementById('btn-prev').disabled=(current===0);
+  const nextBtn=document.getElementById('btn-next');
+  nextBtn.textContent=current===total-1?'Review →':'Next →';
+  document.getElementById('progress-bar').style.width=(done/total*100)+'%';
+  updateBubbles();
+  document.getElementById('badge-attempted').textContent='✅ Attempted: '+done;
+  document.getElementById('badge-skipped').textContent='⭕ Skipped: '+(total-done);
+}
+
+function selectAnswer(i){ answers[current]=i; renderQuestion(); }
+
+function navigate(dir){
+  const nxt=current+dir;
+  if(nxt<0||nxt>=QUESTIONS.length) return;
+  current=nxt; renderQuestion();
+  const card=document.getElementById('q-card');
+  card.style.animation='none';
+  requestAnimationFrame(()=>{ card.style.animation=''; });
+}
+
+function buildBubbles(){
+  const grid=document.getElementById('bubble-grid');
+  grid.innerHTML='';
+  QUESTIONS.forEach((_,i)=>{
+    const b=document.createElement('button');
+    b.className='q-bubble skip'; b.textContent=i+1; b.id='bubble-'+i;
+    b.onclick=()=>{ current=i; renderQuestion(); };
+    grid.appendChild(b);
+  });
+}
+function updateBubbles(){
+  QUESTIONS.forEach((_,i)=>{
+    const b=document.getElementById('bubble-'+i);
+    if(!b) return;
+    b.className='q-bubble'+(i===current?' current':answers[i]!==undefined?' done':' skip');
+  });
+}
+
+function goToPreSubmit(){
+  clearInterval(timerInterval);
+  const done=Object.keys(answers).length;
+  const skipped=QUESTIONS.length-done;
+  document.getElementById('pre-name').textContent=student.name;
+  document.getElementById('pre-father').textContent='Father: '+student.father;
+  document.getElementById('pre-mobile').textContent='📱 '+student.mobile;
+  document.getElementById('pre-attempted').textContent=done;
+  document.getElementById('pre-skipped').textContent=skipped;
+  const warnEl=document.getElementById('skip-warn');
+  if(skipped>0){ document.getElementById('skip-count').textContent=skipped; warnEl.classList.add('show'); }
+  else warnEl.classList.remove('show');
+  showScreen('presubmit');
+}
+
+function goBackToQuiz(){ startTimer(); showScreen('quiz'); renderQuestion(); }
+
+/* ── FINAL SUBMIT → FIREBASE ── */
+async function finalSubmit(){
+  const btn = document.getElementById('btn-final');
+  btn.disabled = true;
+  showLoading('Saving result...');
+
+  const total=QUESTIONS.length;
+  const done=Object.keys(answers).length;
+  const skipped=total-done;
+  let correct=0,wrong=0;
+  QUESTIONS.forEach((q,i)=>{
+    if(answers[i]!==undefined){ if(answers[i]===q.ans) correct++; else wrong++; }
+  });
+
+  const record = {
+    name      : student.name,
+    father    : student.father,
+    mobile    : student.mobile,
+    attempted : done,
+    skipped   : skipped,
+    correct   : correct,
+    wrong     : wrong,
+    marks     : correct,
+    total     : total,
+    submittedAt: new Date().toISOString()
+  };
+
+  try{
+    // Save to Firebase: submissions/<push-id>
+    const newRef = push(ref(db, 'submissions'));
+    await set(newRef, record);
+  } catch(e){
+    hideLoading();
+    btn.disabled = false;
+    alert('❌ Problem submitting. Please check your internet connection and try again.');
+    return;
+  }
+
+  hideLoading();
+  document.getElementById('suc-name').textContent=student.name;
+  document.getElementById('suc-father').textContent='Father: '+student.father;
+  document.getElementById('suc-mobile').textContent='📱 '+student.mobile;
+  document.getElementById('suc-total').textContent=total;
+  document.getElementById('suc-attempted').textContent=done;
+  document.getElementById('suc-skipped').textContent=skipped;
+  showScreen('success');
+}
+
+function goHome(){
+  ['inp-name','inp-father','inp-mobile'].forEach(id=> document.getElementById(id).value='');
+  ['name','father','mobile'].forEach(f=>{
+    document.getElementById('err-'+f).classList.remove('show');
+    document.getElementById('inp-'+f).classList.remove('error');
+  });
+  document.getElementById('dup-alert').classList.remove('show');
+  student={name:'',father:'',mobile:''};
+  answers={};current=0;
+  showScreen('form');
+}
+
+/* ── MOBILE DIGIT ONLY ── */
+document.getElementById('inp-mobile').addEventListener('input',function(){
+  this.value=this.value.replace(/\D/g,'').slice(0,10);
+});
+document.querySelectorAll('#screen-form input').forEach(inp=>{
+  inp.addEventListener('keydown',e=>{ if(e.key==='Enter') startExam(); });
+});
+
+/* ── EXPOSE FUNCTIONS TO GLOBAL (for onclick) ── */
+window.startExam    = startExam;
+window.navigate     = navigate;
+window.goToPreSubmit= goToPreSubmit;
+window.goBackToQuiz = goBackToQuiz;
+window.finalSubmit  = finalSubmit;
+window.goHome       = goHome;
+</script>
+</body>
+</html>
